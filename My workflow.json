@@ -1,0 +1,291 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "\n\nYou are an autonomous Trail Assistant.\nYou must always use tools to gather information before answering.\nALWAYS USE ALL THE TOOLS , EVEN WHEN  ALREADY KNOW , STOP EXECUTION AFTER SENDING THE EMAIL\n\nYour Required Workflow (MUST follow in this exact order):\n\nFind Trail Event\n\nUse the Calendar tool to list events.\n\nSelect the next event whose title includes: trail, hike, trek, outdoor.\n\nGet Weather\n\nUse the Weather API tool with the event’s location and date.\n\nRead Trail Recommendations from Sheet\n\nUse the Data Source (Sheet) tool to read the full sheet.\n\nSelect the row whose time duration matches event duration\n\nGet AQI\n\nUse the Weather AQI tool with the same location.\n\nGenerate Email Content\n\nCombine:\n\nEvent details\n\nWeather\n\nAQI\n\nSheet recommendations\n\nProduce: subject + body.\n\nSEND THE EMAIL (MANDATORY)\n\nUse the Gmail tool with fields:\n\nto: veerhooda@icloud.com\n\nsubject: the subject you generated\n\nbody: the email body you generated\n\nRULES\n\nAlways call tools instead of guessing.\n\nNever output the final answer without calling the Gmail tool.\n\nIf an input is missing (event location, email), ask the user for it.\n\nKeep reasoning internal — respond only with tool calls or final email.\nRole:\nYou are a Trail Recommendation Assistant. Your job is to detect trail events on the user's calendar, collect weather and AQI data, gather recommendations from the data sheet, and automatically send an email with the final curated summary.\n\n📌 STRICT EXECUTION FLOW (MANDATORY)\n\nYou must strictly follow these steps and execute each using the appropriate tool:\n\n1. Identify the Trail Event\n\nUse the Calendar tool → getAll to find the next event containing keywords:\n“trail”, “hike”, “trek”, “mountain”, “outdoor”.\n\nExtract:\n\nEvent name\n\nDate\n\nLocation (city / coordinates)\n\nIf no event is found → ask the user for the event’s details.\n\n2. Get Weather for the Event\n\nUse the Weather API tool with the event location and date.\n\nReturn:\n\ntemperature\n\nweather condition\n\nchance of rain\n\nwind\n\nUV\n\n3. Get Trail Recommendations from Sheet\n\nUse the Data Source tool to read the sheet.\n\nFind the row that you think is perfect\n\nExtract:\n\ngear list\n\nsafety tips\n\nhydration notes\n\npacking advice\n\n4. Get AQI Data\n\nUse the Weather AQI tool with the same location.\n\nExtract:\n\nAQI number\n\nAQI category\n\nhealth recommendations\n\n5. Generate Email Content\n\nCreate a well-structured email using ALL collected data.\nThe email must include:\n\nEvent title\n\nDate & location\n\nWeather summary\n\nAQI summary\n\nPersonalized recommendations from the sheet\n\nSafety notes\n\n6. SEND THE EMAIL (MANDATORY)\n\nAfter generating the email content, you must call the Gmail tool using this schema:\n\nFields required:\n\nto: the email address user provided\n\nsubject: “Your Trail Preparation Summary”\n\nbody: the full email text you generated\n\nIf the user did not provide an email address → ask for it before sending.\n\n📧 Email Structure (the one you must generate before sending)\nTO: veerh750@gmail.com\n\nSubject:\nYour Trail Preparation Summary – Weather, AQI, and Recommendations\n\nBody:\nHi {{name or user}},\nHere is your trail briefing for {{event}} on {{date}} at {{location}}:\n\n🌤 Weather\n\nCondition: {{condition}}\n\nTemperature: {{temp}}\n\nWind: {{wind}}\n\nUV: {{uv}}\n\n🌫 Air Quality\n\nAQI: {{aqi}} ({{aqi_level}})\n\nNotes: {{aqi_notes}}\n\n🎒 Recommendations\n\n{{gear list}}\n\n{{safety tips}}\n\nLet me know if you’d like more help preparing!\n\n🔧 Final Rule (Important)\n\nOnce all data is collected, you MUST call the Gmail tool.\nNever stop after generating the email text — always execute the send-message step.",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        536,
+        0
+      ],
+      "id": "b6bf43e9-3414-43f5-a653-65f0829f775f",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        0
+      ],
+      "id": "979a03ad-196c-429f-acf4-6564c920e309",
+      "name": "Trigger"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        224,
+        224
+      ],
+      "id": "ccaf303e-f6ef-4cd9-ac49-70bb1263cdff",
+      "name": "Brain",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "Vm72YV7qS2gkf3I8",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "trail-run-session"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        352,
+        224
+      ],
+      "id": "bd9c5534-5196-4195-a375-4fb1333533b0",
+      "name": "Memory "
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "calendar": {
+          "__rl": true,
+          "value": "veerh750@gmail.com",
+          "mode": "list",
+          "cachedResultName": "veerh750@gmail.com"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        480,
+        224
+      ],
+      "id": "73b5fa3d-eb27-4302-b9e6-b34716273265",
+      "name": "Calendar",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "p8JECF38a6dcpCjp",
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "cityName": "pune,in"
+      },
+      "type": "n8n-nodes-base.openWeatherMapTool",
+      "typeVersion": 1,
+      "position": [
+        608,
+        224
+      ],
+      "id": "54aa5b9a-af08-4260-b4cb-2f6ae2d3ea5a",
+      "name": "Weather API",
+      "credentials": {
+        "openWeatherMapApi": {
+          "id": "2wlk1HXQFVkf9XmW",
+          "name": "OpenWeatherMap account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1hTYmJwRUTtEBcdTcnVXTIiVIVI2jvWTqzcNHJUXlRYI",
+          "mode": "list",
+          "cachedResultName": "Untitled spreadsheet",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1hTYmJwRUTtEBcdTcnVXTIiVIVI2jvWTqzcNHJUXlRYI/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1723790763,
+          "mode": "list",
+          "cachedResultName": "Trails Data",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1hTYmJwRUTtEBcdTcnVXTIiVIVI2jvWTqzcNHJUXlRYI/edit#gid=1723790763"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        736,
+        224
+      ],
+      "id": "335e17b7-e278-4e14-8df6-6f546344fc53",
+      "name": "Data Source",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "QOoIJlXUHYEvFGYz",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "veerhooda@icloud.com",
+        "subject": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Subject', ``, 'string') }}",
+        "message": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message', ``, 'string') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.1,
+      "position": [
+        864,
+        224
+      ],
+      "id": "0545b3cc-fd9d-49ac-8419-c03a49acaa39",
+      "name": "Gmail",
+      "webhookId": "60dc1613-8830-4ae7-979e-5a1b6e538396",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "kANEoNXLaR3JT4ey",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "toolDescription": "Makes an HTTP request and returns the response data of Weather AQI",
+        "url": "http://api.openweathermap.org/data/2.5/air_pollution?lat=18.5196&lon=73.8553&appid=8a34f3715476adbe46f7e626f857fc67",
+        "options": {},
+        "optimizeResponse": true
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.3,
+      "position": [
+        992,
+        224
+      ],
+      "id": "cdd9af2a-06e4-4d0e-aaf8-5183f5e79d4d",
+      "name": "Weather AQI"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Trigger": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Brain": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Memory ": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calendar": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Weather API": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Data Source": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Weather AQI": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "bcd2392d-e734-471b-afd0-02c4702204bf",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "572664e933e75388d0f9fbf1c8c48027fc45182935ecfe5fac9362879eb6a617"
+  },
+  "id": "nlZr6wMhNC96rsNH",
+  "tags": []
+}

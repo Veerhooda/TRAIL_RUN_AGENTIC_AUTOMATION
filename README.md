@@ -15,6 +15,10 @@ Air Quality Index (AQI): Checks air quality and provides health advice based on 
 Automated Email: Sends a personalized email with all event details, weather, gear recommendations, and AQI information.
 
 
+<img width="1470" height="830" alt="Screenshot 2025-11-29 at 9 25 36 PM" src="https://github.com/user-attachments/assets/c5559571-54f6-46c3-bdeb-acc5ba6fca91" />
+
+
+
 
 🛠️ Requirements
 
